@@ -1,0 +1,4 @@
+#!/bin/bash
+
+echo "🚀 启动服务..."
+uv run uvicorn app.main:app --host 0.0.0.0 --port 8008 --reload

@@ -1,0 +1,49 @@
+# ============================================
+# Docker Build Ignore
+# ============================================
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+.env
+
+# Testing
+.pytest_cache
+.coverage
+htmlcov/
+*.cover
+
+# Documentation
+docs/
+*.md
+
+# OS
+.DS_Store
+Thumbs.db
+
+# CI/CD
+.github/
+.git/
+
+# Local files
+*.log
+*.sqlite3
+
+# Backup
+*~

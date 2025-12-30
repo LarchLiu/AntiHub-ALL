@@ -1,0 +1,296 @@
+"""
+用量统计路由
+显示用户的使用记录和剩余配额
+"""
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, status, Query
+
+from app.api.deps import get_current_user, get_plugin_api_service
+from app.models.user import User
+from app.services.plugin_api_service import PluginAPIService
+
+
+router = APIRouter(prefix="/usage", tags=["用量统计"])
+
+
+@router.get(
+    "/quotas",
+    summary="获取配额信息",
+    description="获取用户的配额信息，包括用户共享配额池和共享池总配额"
+)
+async def get_quotas(
+    current_user: User = Depends(get_current_user),
+    service: PluginAPIService = Depends(get_plugin_api_service)
+):
+    """
+    获取用户配额信息
+    包括：
+    - 用户共享配额池（user_quota）
+    - 共享池总配额（shared_pool_quota）
+    """
+    try:
+        # 获取用户共享配额池
+        user_quota = await service.get_user_quotas(current_user.id)
+        
+        # 获取共享池配额
+        shared_pool_quota = await service.get_shared_pool_quotas(current_user.id)
+        
+        # 处理新的响应格式：data 可能是对象（包含 quotas 和 user_consumption）或数组
+        shared_pool_data = shared_pool_quota.get("data", {})
+        if isinstance(shared_pool_data, dict):
+            # 新格式：返回完整的对象
+            shared_pool_result = shared_pool_data
+        else:
+            # 旧格式：数组，包装成对象
+            shared_pool_result = {"quotas": shared_pool_data}
+        
+        return {
+            "success": True,
+            "data": {
+                "user_quota": user_quota.get("data", []),
+                "shared_pool_quota": shared_pool_result
+            }
+        }
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"获取配额信息失败"
+        )
+
+
+@router.get(
+    "/consumption",
+    summary="获取消耗记录",
+    description="获取用户的配额消耗历史记录"
+)
+async def get_consumption(
+    limit: Optional[int] = Query(50, description="限制返回数量"),
+    start_date: Optional[str] = Query(None, description="开始日期"),
+    end_date: Optional[str] = Query(None, description="结束日期"),
+    current_user: User = Depends(get_current_user),
+    service: PluginAPIService = Depends(get_plugin_api_service)
+):
+    """
+    获取配额消耗记录
+    如果plug-in-api不支持此端点，会返回错误信息
+    """
+    try:
+        result = await service.get_quota_consumption(
+            user_id=current_user.id,
+            limit=limit,
+            start_date=start_date,
+            end_date=end_date
+        )
+        return result
+    except Exception as e:
+        # 如果端点不存在，返回友好的错误信息
+        error_msg = str(e)
+        if "404" in error_msg:
+            raise HTTPException(
+                status_code=status.HTTP_501_NOT_IMPLEMENTED,
+                detail="plug-in-api暂不支持消耗记录查询功能"
+            )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"获取消耗记录失败: {error_msg}"
+        )
+
+
+@router.get(
+    "/accounts",
+    summary="获取账号配额",
+    description="获取用户所有账号的配额信息"
+)
+async def get_accounts_quotas(
+    current_user: User = Depends(get_current_user),
+    service: PluginAPIService = Depends(get_plugin_api_service)
+):
+    """
+    获取用户所有账号及其配额信息
+    """
+    try:
+        # 获取账号列表
+        accounts_result = await service.get_accounts(current_user.id)
+        accounts = accounts_result.get("data", [])
+        
+        # 为每个账号获取配额信息
+        accounts_with_quotas = []
+        for account in accounts:
+            cookie_id = account.get("cookie_id")
+            try:
+                quotas_result = await service.get_account_quotas(
+                    user_id=current_user.id,
+                    cookie_id=cookie_id
+                )
+                account["quotas"] = quotas_result.get("data", [])
+            except Exception:
+                account["quotas"] = []
+            
+            accounts_with_quotas.append(account)
+        
+        return {
+            "success": True,
+            "data": accounts_with_quotas
+        }
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"获取账号配额失败"
+        )
+
+
+@router.get(
+    "/summary",
+    summary="获取用量摘要",
+    description="获取用户的用量摘要信息"
+)
+async def get_usage_summary(
+    current_user: User = Depends(get_current_user),
+    service: PluginAPIService = Depends(get_plugin_api_service)
+):
+    """
+    获取用量摘要
+    包括：
+    - 账号数量
+    - 总配额
+    - 已用配额
+    - 剩余配额
+    """
+    try:
+        # 获取账号列表
+        accounts_result = await service.get_accounts(current_user.id)
+        accounts = accounts_result.get("data", [])
+        
+        # 获取用户共享配额池
+        user_quota_result = await service.get_user_quotas(current_user.id)
+        user_quotas = user_quota_result.get("data", [])
+        
+        # 获取共享池配额
+        shared_pool_result = await service.get_shared_pool_quotas(current_user.id)
+        shared_pool_data = shared_pool_result.get("data", {})
+        # 处理新的响应格式：data 可能是对象（包含 quotas）或数组
+        if isinstance(shared_pool_data, dict):
+            shared_pool_quotas = shared_pool_data.get("quotas", [])
+        else:
+            shared_pool_quotas = shared_pool_data
+        
+        # 统计信息
+        total_accounts = len(accounts)
+        active_accounts = len([a for a in accounts if a.get("status") == 1])
+        
+        # 按模型统计配额
+        quota_by_model = {}
+        for quota in user_quotas:
+            model_name = quota.get("model_name")
+            quota_by_model[model_name] = {
+                "current_quota": float(quota.get("quota", 0)),
+                "max_quota": float(quota.get("max_quota", 0)),
+                "last_recovered_at": quota.get("last_recovered_at")
+            }
+        
+        return {
+            "success": True,
+            "data": {
+                "accounts": {
+                    "total": total_accounts,
+                    "active": active_accounts,
+                    "inactive": total_accounts - active_accounts
+                },
+                "user_quotas": quota_by_model,
+                "shared_pool": shared_pool_quotas
+            }
+        }
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"获取用量摘要失败"
+        )
+
+
+@router.get(
+    "/shared-pool/stats",
+    summary="获取共享池统计信息",
+    description="获取总共享池的统计信息，包括账号数、配额等"
+)
+async def get_shared_pool_stats(
+    current_user: User = Depends(get_current_user),
+    service: PluginAPIService = Depends(get_plugin_api_service)
+):
+    """
+    获取共享池统计信息
+    包括：
+    - 总共享账号数
+    - 可用共享账号数
+    - 各模型的总配额
+    - 各模型的可用配额
+    """
+    try:
+        # 获取账号列表
+        accounts_result = await service.get_accounts(current_user.id)
+        accounts = accounts_result.get("data", [])
+        
+        # 筛选共享账号
+        shared_accounts = [a for a in accounts if a.get("is_shared") == 1]
+        active_shared_accounts = [a for a in shared_accounts if a.get("status") == 1]
+        
+        # 获取共享池配额
+        shared_pool_result = await service.get_shared_pool_quotas(current_user.id)
+        shared_pool_data = shared_pool_result.get("data", {})
+        
+        # 处理新的响应格式：data 可能是对象（包含 quotas 和 user_consumption）或数组
+        if isinstance(shared_pool_data, dict):
+            shared_pool_quotas = shared_pool_data.get("quotas", [])
+            user_consumption = shared_pool_data.get("user_consumption", {})
+        else:
+            shared_pool_quotas = shared_pool_data
+            user_consumption = {}
+        
+        # 按模型统计配额
+        quota_stats = {}
+        for quota in shared_pool_quotas:
+            model_name = quota.get("model_name")
+            quota_stats[model_name] = {
+                "total_quota": float(quota.get("total_quota", 0)),
+                "available_cookies": quota.get("available_cookies", 0),
+                "earliest_reset_time": quota.get("earliest_reset_time"),
+                "status": quota.get("status")
+            }
+        
+        return {
+            "success": True,
+            "data": {
+                "accounts": {
+                    "total_shared": len(shared_accounts),
+                    "active_shared": len(active_shared_accounts),
+                    "inactive_shared": len(shared_accounts) - len(active_shared_accounts)
+                },
+                "quotas_by_model": quota_stats,
+                "user_consumption": user_consumption,
+                "note": "24小时消耗统计需要启用使用日志记录功能"
+            }
+        }
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"获取共享池统计失败"
+        )

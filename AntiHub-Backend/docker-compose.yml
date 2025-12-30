@@ -1,0 +1,77 @@
+# ============================================
+# AntiHub-Backend Docker Compose
+# ============================================
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: antihub-backend
+    ports:
+      - "8000:8000"
+    environment:
+      # 基础配置
+      APP_ENV: production
+      LOG_LEVEL: INFO
+
+      # 数据库（用户自行外接）
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://postgres:postgres@db:5432/antihub}
+
+      # Redis
+      REDIS_URL: redis://redis:6379/0
+
+      # JWT 配置
+      JWT_SECRET_KEY: your-secret-key-change-this-in-production
+      JWT_ALGORITHM: HS256
+      JWT_EXPIRE_HOURS: 24
+
+      # Refresh Token
+      REFRESH_TOKEN_EXPIRE_DAYS: 7
+
+      # Linux.do OAuth
+      OAUTH_CLIENT_ID: your-oauth-client-id
+      OAUTH_CLIENT_SECRET: your-oauth-client-secret
+      OAUTH_REDIRECT_URI: http://localhost:8000/api/auth/callback
+      OAUTH_AUTHORIZATION_ENDPOINT: https://connect.linux.do/oauth2/authorize
+      OAUTH_TOKEN_ENDPOINT: https://connect.linux.do/oauth2/token
+      OAUTH_USER_INFO_ENDPOINT: https://connect.linux.do/api/user
+
+      # GitHub OAuth
+      GITHUB_CLIENT_ID: your-github-client-id
+      GITHUB_CLIENT_SECRET: your-github-client-secret
+      GITHUB_REDIRECT_URI: http://localhost:3000/api/auth/github/callback
+
+      # 插件 API 配置
+      PLUGIN_API_BASE_URL: http://localhost:8045
+      PLUGIN_API_ADMIN_KEY: sk-admin-your-admin-key-here
+      PLUGIN_API_ENCRYPTION_KEY: your-encryption-key-here-min-32-chars
+
+    volumes:
+      - ./:/app:ro
+    depends_on:
+      redis:
+        condition: service_started
+    networks:
+      - antihub-network
+    restart: unless-stopped
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: antihub-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - antihub-network
+    restart: unless-stopped
+
+networks:
+  antihub-network:
+    driver: bridge
+
+volumes:
+  redis_data:
