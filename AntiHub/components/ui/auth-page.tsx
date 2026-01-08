@@ -6,28 +6,24 @@ import { Button } from './button';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import {
-	AtSignIcon,
-	ChevronLeftIcon,
+  AtSignIcon,
+  ChevronLeftIcon,
 } from 'lucide-react';
 import { Input } from './input';
-import { initiateSSOLogin, initiateGitHubLogin, login, isAuthenticated } from '@/lib/api';
+import { login, isAuthenticated } from '@/lib/api';
 import { MorphingSquare } from './morphing-square';
 
 const ERROR_MESSAGES: Record<string, string> = {
-	'missing_oauth_params': 'OAuth 参数缺失',
-	'oauth_callback_failed': 'OAuth 回调处理失败',
-	'missing_token': '缺少访问令牌',
+  'missing_token': '缺少访问令牌',
 };
 
 export function AuthPage() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const [username, setUsername] = useState('');
-	const [password, setPassword] = useState('');
-	const [isLoading, setIsLoading] = useState(false);
-	const [isSSOLoading, setIsSSOLoading] = useState(false);
-	const [isGitHubLoading, setIsGitHubLoading] = useState(false);
-	const [error, setError] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
 	// 检查是否已登录，如果已登录则跳转到控制台
 	useEffect(() => {
@@ -50,45 +46,15 @@ export function AuthPage() {
 		setError('');
 		setIsLoading(true);
 
-		try {
-			await login({ username, password });
-			router.push('/dashboard');
-		} catch (err) {
-			setError(err instanceof Error ? err.message : '登录失败,请稍后重试');
-		} finally {
-			setIsLoading(false);
-		}
-	};
-
-	// 处理 SSO 登录
-	const handleSSOLogin = async () => {
-		setError('');
-		setIsSSOLoading(true);
-
-		try {
-			const { authorization_url } = await initiateSSOLogin();
-			// 重定向到 OAuth 授权页面
-			window.location.href = authorization_url;
-		} catch (err) {
-			setError(err instanceof Error ? err.message : 'SSO 登录失败');
-			setIsSSOLoading(false);
-		}
-	};
-
-	// 处理 GitHub 登录
-	const handleGitHubLogin = async () => {
-		setError('');
-		setIsGitHubLoading(true);
-
-		try {
-			const { authorization_url } = await initiateGitHubLogin();
-			// 重定向到 GitHub 授权页面
-			window.location.href = authorization_url;
-		} catch (err) {
-			setError(err instanceof Error ? err.message : 'GitHub 登录失败');
-			setIsGitHubLoading(false);
-		}
-	};
+    try {
+      await login({ username, password });
+      router.push('/dashboard');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '登录失败，请稍后重试');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
 	return (
 		<main className="relative md:h-screen md:overflow-hidden lg:grid lg:grid-cols-2 bg-black">
@@ -135,51 +101,14 @@ export function AuthPage() {
 						<p className="text-xl font-semibold text-white">AntiHub</p>
 					</div>
 					<div className="flex flex-col space-y-2">
-						<h1 className="font-heading text-2xl font-bold tracking-wide text-white">
-							登录 AntiHub
-						</h1>
-						<p className="text-white/60 text-start text-xs">
-							推荐使用 SSO 登录
-						</p>
-					</div>
-					<div className="space-y-2">
-						<Button
-							type="button"
-							size="lg"
-							className="w-full bg-white text-black hover:bg-white/90 cursor-pointer"
-							onClick={handleSSOLogin}
-							disabled={isSSOLoading || isLoading || isGitHubLoading}
-						>
-							{isSSOLoading ? (
-								<MorphingSquare className="size-4 me-2" />
-							) : (
-								<img src="/linuxdoconnect.png" alt="Linux.do" className="size-4 me-2" />
-							)}
-							使用 Linux.do 继续
-						</Button>
-						
-						<Button
-							type="button"
-							size="lg"
-							variant="outline"
-							className="w-full bg-transparent border-white/20 text-white hover:bg-white/10 hover:text-white cursor-pointer"
-							onClick={handleGitHubLogin}
-							disabled={isGitHubLoading || isLoading || isSSOLoading}
-						>
-							{isGitHubLoading ? (
-								<MorphingSquare className="size-4 me-2" />
-							) : (
-								<svg className="size-4 me-2" viewBox="0 0 24 24" fill="currentColor">
-									<path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-								</svg>
-							)}
-							使用 GitHub 继续
-						</Button>
-					</div>
-
-					<AuthSeparator />
-
-					<form className="space-y-2" onSubmit={handlePasswordLogin}>
+					<h1 className="font-heading text-2xl font-bold tracking-wide text-white">
+						登录 AntiHub
+					</h1>
+					<p className="text-white/60 text-start text-xs">
+						使用账号密码登录
+					</p>
+				</div>
+				<form className="space-y-2" onSubmit={handlePasswordLogin}>
 						<p className="text-white/60 text-start text-xs">
 							使用账号密码登录
 						</p>
@@ -195,11 +124,11 @@ export function AuthPage() {
 								placeholder="用户名 / 邮箱"
 								className="peer ps-9 bg-white/5 border-white/10 text-white placeholder:text-white/40"
 								type="text"
-								value={username}
-								onChange={(e) => setUsername(e.target.value)}
-								required
-								disabled={isLoading || isSSOLoading || isGitHubLoading}
-							/>
+						value={username}
+						onChange={(e) => setUsername(e.target.value)}
+						required
+						disabled={isLoading}
+					/>
 							<div className="text-white/60 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-disabled:opacity-50">
 								<AtSignIcon className="size-4" aria-hidden="true" />
 							</div>
@@ -210,18 +139,18 @@ export function AuthPage() {
 								placeholder="密码"
 								className="bg-white/5 border-white/10 text-white placeholder:text-white/40"
 								type="password"
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
-								required
-								disabled={isLoading || isSSOLoading || isGitHubLoading}
-							/>
+						value={password}
+						onChange={(e) => setPassword(e.target.value)}
+						required
+						disabled={isLoading}
+					/>
 						</div>
 
-						<Button
-							type="submit"
-							className="w-full bg-white text-black hover:bg-white/90 cursor-pointer"
-							disabled={isLoading || isSSOLoading || isGitHubLoading}
-						>
+					<Button
+						type="submit"
+						className="w-full bg-white text-black hover:bg-white/90 cursor-pointer"
+						disabled={isLoading}
+					>
 							{isLoading ? (
 								<>
 									<MorphingSquare className="size-4 me-2" />
@@ -302,12 +231,3 @@ function FloatingPaths({ position }: { position: number }) {
 	);
 }
 
-const AuthSeparator = () => {
-	return (
-		<div className="flex w-full items-center justify-center">
-			<div className="bg-white/10 h-px w-full" />
-			<span className="text-white/60 px-2 text-xs">或</span>
-			<div className="bg-white/10 h-px w-full" />
-		</div>
-	);
-};

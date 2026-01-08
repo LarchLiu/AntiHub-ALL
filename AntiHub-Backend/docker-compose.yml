@@ -29,19 +29,6 @@ services:
       # Refresh Token
       REFRESH_TOKEN_EXPIRE_DAYS: 7
 
-      # Linux.do OAuth
-      OAUTH_CLIENT_ID: your-oauth-client-id
-      OAUTH_CLIENT_SECRET: your-oauth-client-secret
-      OAUTH_REDIRECT_URI: http://localhost:8000/api/auth/callback
-      OAUTH_AUTHORIZATION_ENDPOINT: https://connect.linux.do/oauth2/authorize
-      OAUTH_TOKEN_ENDPOINT: https://connect.linux.do/oauth2/token
-      OAUTH_USER_INFO_ENDPOINT: https://connect.linux.do/api/user
-
-      # GitHub OAuth
-      GITHUB_CLIENT_ID: your-github-client-id
-      GITHUB_CLIENT_SECRET: your-github-client-secret
-      GITHUB_REDIRECT_URI: http://localhost:3000/api/auth/github/callback
-
       # 插件 API 配置
       PLUGIN_API_BASE_URL: http://localhost:8045
       PLUGIN_API_ADMIN_KEY: sk-admin-your-admin-key-here

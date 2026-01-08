@@ -1,6 +1,6 @@
 # 共享账号管理系统
 
-基于 FastAPI 的共享账号管理系统，集成 Plug-in API 功能，支持传统用户名密码登录和 OAuth SSO 单点登录，提供完整的 AI 聊天服务和配额管理。
+基于 FastAPI 的共享账号管理系统，集成 Plug-in API 功能，支持传统用户名密码登录，提供完整的 AI 聊天服务和配额管理。
 
 ## 功能特性
 
@@ -8,7 +8,6 @@
 
 - **用户认证**
   - 传统用户名密码登录
-  - OAuth 2.0 SSO 单点登录（支持 Linux.do、GitHub）
   - JWT 令牌认证
   - **无感刷新机制**（Refresh Token）
   - 会话管理
@@ -17,7 +16,6 @@
 
 - **用户管理**
   - 用户信息存储(PostgreSQL)
-  - OAuth 令牌管理
   - 用户状态管理(激活/禁用/禁言)
   - 信任等级系统
 
@@ -44,7 +42,6 @@
   - bcrypt 密码哈希(rounds=12)
   - JWT Access Token (HS256, 默认24小时有效期)
   - JWT Refresh Token (默认7天有效期)
-  - OAuth state 验证(防止 CSRF 攻击)
   - Token 自动轮换机制
   - API 密钥加密存储
 
@@ -52,7 +49,6 @@
   - Redis 会话存储
   - 令牌黑名单
   - Refresh Token 存储和管理
-  - OAuth state 临时存储
 
 ## 技术栈
 
@@ -111,19 +107,6 @@ JWT_EXPIRE_HOURS=24
 REFRESH_TOKEN_EXPIRE_DAYS=7
 # REFRESH_TOKEN_SECRET_KEY=your-refresh-token-secret-key  # 可选，默认使用 JWT_SECRET_KEY
 
-# OAuth 配置（Linux.do）
-OAUTH_CLIENT_ID=your-oauth-client-id
-OAUTH_CLIENT_SECRET=your-oauth-client-secret
-OAUTH_REDIRECT_URI=http://localhost:8008/api/auth/sso/callback
-OAUTH_AUTHORIZATION_ENDPOINT=https://connect.linux.do/oauth2/authorize
-OAUTH_TOKEN_ENDPOINT=https://connect.linux.do/oauth2/token
-OAUTH_USER_INFO_ENDPOINT=https://connect.linux.do/api/user
-
-# GitHub OAuth 配置
-GITHUB_CLIENT_ID=your-github-client-id
-GITHUB_CLIENT_SECRET=your-github-client-secret
-GITHUB_REDIRECT_URI=http://localhost:3000/api/auth/github/callback
-
 # Plug-in API 配置（可选）
 PLUGIN_API_BASE_URL=http://localhost:8045
 PLUGIN_API_ADMIN_KEY=sk-admin-your-admin-key-here
@@ -178,10 +161,6 @@ uv run python app/main.py
 |------|------|------|
 | POST | `/api/auth/login` | 用户名密码登录 |
 | POST | `/api/auth/refresh` | 刷新访问令牌（无感刷新） |
-| GET | `/api/auth/sso/initiate` | 发起 OAuth SSO 登录 |
-| GET | `/api/auth/sso/callback` | OAuth 回调处理 |
-| GET | `/api/auth/github/login` | 发起 GitHub OAuth 登录 |
-| POST | `/api/auth/github/callback` | GitHub OAuth 回调处理 |
 | POST | `/api/auth/logout` | 用户登出 |
 | POST | `/api/auth/logout-all` | 登出所有设备 |
 | GET | `/api/auth/me` | 获取当前用户信息 |
@@ -343,32 +322,6 @@ curl -X POST "http://localhost:8008/api/auth/refresh" \
   }'
 ```
 
-### OAuth SSO 登录
-
-```bash
-# 1. 获取授权 URL
-curl "http://localhost:8008/api/auth/sso/initiate"
-
-# 2. 用户在浏览器中访问返回的 authorization_url
-# 3. 授权后会重定向到 callback URL 并自动完成登录
-```
-
-### GitHub OAuth 登录
-
-```bash
-# 1. 获取 GitHub 授权 URL
-curl "http://localhost:8008/api/auth/github/login"
-
-# 2. 用户在浏览器中访问返回的 authorization_url
-# 3. 授权后前端调用 callback 接口完成登录
-curl -X POST "http://localhost:8008/api/auth/github/callback" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "code": "github_authorization_code",
-    "state": "oauth_state"
-  }'
-```
-
 ### 获取当前用户信息
 
 ```bash
@@ -487,8 +440,6 @@ antigv-backend/
 │   ├── services/                 # 业务逻辑层
 │   │   ├── auth_service.py       # 认证服务
 │   │   ├── user_service.py       # 用户服务
-│   │   ├── oauth_service.py      # OAuth 服务
-│   │   ├── github_oauth_service.py # GitHub OAuth 服务
 │   │   └── plugin_api_service.py # Plug-in API 服务
 │   ├── utils/                    # 工具模块
 │   │   └── encryption.py         # 加密工具

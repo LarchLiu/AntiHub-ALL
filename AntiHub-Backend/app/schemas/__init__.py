@@ -5,8 +5,6 @@ Pydantic Schema 模块
 from app.schemas.auth import (
     LoginRequest,
     LoginResponse,
-    OAuthCallbackParams,
-    OAuthInitiateResponse,
     LogoutResponse,
     MessageResponse,
 )
@@ -49,8 +47,6 @@ __all__ = [
     # Auth schemas
     "LoginRequest",
     "LoginResponse",
-    "OAuthCallbackParams",
-    "OAuthInitiateResponse",
     "LogoutResponse",
     "MessageResponse",
     # User schemas

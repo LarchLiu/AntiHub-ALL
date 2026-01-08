@@ -36,22 +36,6 @@ class Settings(BaseSettings):
     refresh_token_expire_days: int = Field(default=7, description="Refresh Token 过期时间（天）")
     refresh_token_secret_key: Optional[str] = Field(default=None, description="Refresh Token 密钥（默认使用 JWT 密钥）")
     
-    # OAuth 配置
-    oauth_client_id: str = Field(..., description="OAuth Client ID")
-    oauth_client_secret: str = Field(..., description="OAuth Client Secret")
-    oauth_redirect_uri: str = Field(..., description="OAuth 回调地址")
-    oauth_authorization_endpoint: str = Field(..., description="OAuth 授权端点")
-    oauth_token_endpoint: str = Field(..., description="OAuth 令牌端点")
-    oauth_user_info_endpoint: str = Field(..., description="OAuth 用户信息端点")
-
-    # GitHub OAuth
-    github_client_id: str = Field(default="", env="GITHUB_CLIENT_ID")
-    github_client_secret: str = Field(default="", env="GITHUB_CLIENT_SECRET")
-    github_redirect_uri: str = Field(default="", env="GITHUB_REDIRECT_URI")
-    github_authorize_url: str = "https://github.com/login/oauth/authorize"
-    github_token_url: str = "https://github.com/login/oauth/access_token"
-    github_user_api_url: str = "https://api.github.com/user"
-    
     # Plug-in API 配置
     plugin_api_base_url: str = Field(
         default="http://localhost:8045",

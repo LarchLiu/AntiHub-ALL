@@ -138,7 +138,7 @@ def create_app() -> FastAPI:
     
     app = FastAPI(
         title="共享账号管理系统",
-        description="基于 FastAPI 的共享账号管理系统,支持传统登录和 OAuth SSO",
+        description="基于 FastAPI 的共享账号管理系统,支持传统用户名密码登录",
         version="1.0.0",
         lifespan=lifespan,
         docs_url=docs_url,

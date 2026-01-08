@@ -46,11 +46,6 @@ export interface RefreshTokenResponse {
   expires_in: number;
 }
 
-export interface OAuthInitiateResponse {
-  authorization_url: string;
-  state: string;
-}
-
 export interface LogoutResponse {
   success: boolean;
   message: string;
@@ -359,72 +354,7 @@ export async function login(credentials: LoginRequest): Promise<LoginResponse> {
   
   // 保存 token 和 refresh_token 到 localStorage
   saveAuthCredentials(data, data.user);
-  
-  return data;
-}
 
-/**
- * 发起 SSO 登录 (Linux.do)
- * 注意: 返回的 authorization_url 会重定向到 OAuth 提供商,
- * OAuth 提供商会回调到后端配置的 redirect_uri
- */
-export async function initiateSSOLogin(): Promise<OAuthInitiateResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/auth/sso/initiate`, {
-    method: 'GET',
-  });
-  
-  return handleResponse<OAuthInitiateResponse>(response);
-}
-
-/**
- * 发起 GitHub SSO 登录
- * GET /api/auth/github/login
- */
-export async function initiateGitHubLogin(): Promise<OAuthInitiateResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/auth/github/login`, {
-    method: 'GET',
-  });
-  
-  return handleResponse<OAuthInitiateResponse>(response);
-}
-
-/**
- * 完成 GitHub SSO 认证
- * POST /api/auth/github/callback
- */
-export async function handleGitHubCallback(code: string, state: string): Promise<LoginResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/auth/github/callback`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ code, state }),
-  });
-  
-  const data = await handleResponse<LoginResponse>(response);
-  
-  // 保存 token 和 refresh_token 到 localStorage
-  saveAuthCredentials(data, data.user);
-  
-  return data;
-}
-
-/**
- * OAuth 回调处理
- */
-export async function handleOAuthCallback(code: string, state: string): Promise<LoginResponse> {
-  const response = await fetch(
-    `${API_BASE_URL}/api/auth/sso/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`,
-    {
-      method: 'GET',
-    }
-  );
-  
-  const data = await handleResponse<LoginResponse>(response);
-  
-  // 保存 token 和 refresh_token 到 localStorage
-  saveAuthCredentials(data, data.user);
-  
   return data;
 }
 

@@ -107,44 +107,6 @@ class RefreshTokenResponse(BaseModel):
     }
 
 
-# ==================== OAuth 相关 ====================
-
-class OAuthCallbackParams(BaseModel):
-    """OAuth 回调参数"""
-    
-    code: str = Field(..., description="OAuth 授权码")
-    state: str = Field(..., description="OAuth state 参数")
-    
-    model_config = {
-        "json_schema_extra": {
-            "examples": [
-                {
-                    "code": "abc123def456",
-                    "state": "random_state_string"
-                }
-            ]
-        }
-    }
-
-
-class OAuthInitiateResponse(BaseModel):
-    """OAuth 登录发起响应"""
-    
-    authorization_url: str = Field(..., description="OAuth 授权 URL")
-    state: str = Field(..., description="OAuth state 参数")
-    
-    model_config = {
-        "json_schema_extra": {
-            "examples": [
-                {
-                    "authorization_url": "https://oauth.example.com/authorize?client_id=xxx&state=yyy",
-                    "state": "random_state_string"
-                }
-            ]
-        }
-    }
-
-
 # ==================== 登出相关 ====================
 
 class LogoutRequest(BaseModel):

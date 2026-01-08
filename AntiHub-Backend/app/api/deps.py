@@ -11,8 +11,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.cache import get_redis_client, RedisClient
 from app.services.auth_service import AuthService
-from app.services.oauth_service import OAuthService
-from app.services.github_oauth_service import GitHubOAuthService
 from app.services.user_service import UserService
 from app.services.plugin_api_service import PluginAPIService
 from app.models.user import User
@@ -99,32 +97,6 @@ async def get_auth_service(
         AuthService: 认证服务实例
     """
     return AuthService(db, redis)
-
-
-async def get_oauth_service(
-    db: AsyncSession = Depends(get_db_session),
-    redis: RedisClient = Depends(get_redis)
-) -> OAuthService:
-    """
-    获取 OAuth 服务
-    
-    Returns:
-        OAuthService: OAuth 服务实例
-    """
-    return OAuthService(db, redis)
-
-
-async def get_github_oauth_service(
-    db: AsyncSession = Depends(get_db_session),
-    redis: RedisClient = Depends(get_redis)
-) -> GitHubOAuthService:
-    """
-    获取 GitHub OAuth 服务
-    
-    Returns:
-        GitHubOAuthService: GitHub OAuth 服务实例
-    """
-    return GitHubOAuthService(db, redis)
 
 
 async def get_user_service(

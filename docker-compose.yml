@@ -34,19 +34,6 @@ services:
       JWT_EXPIRE_HOURS: ${JWT_EXPIRE_HOURS:-24}
       REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
 
-      # Linux.do OAuth（如不使用也需要给占位值，否则后端配置校验会失败）
-      OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID:-changeme}
-      OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET:-changeme}
-      OAUTH_REDIRECT_URI: ${PUBLIC_URL:-http://localhost:3000}/api/auth/callback
-      OAUTH_AUTHORIZATION_ENDPOINT: ${OAUTH_AUTHORIZATION_ENDPOINT:-https://connect.linux.do/oauth2/authorize}
-      OAUTH_TOKEN_ENDPOINT: ${OAUTH_TOKEN_ENDPOINT:-https://connect.linux.do/oauth2/token}
-      OAUTH_USER_INFO_ENDPOINT: ${OAUTH_USER_INFO_ENDPOINT:-https://connect.linux.do/api/user}
-
-      # GitHub OAuth（可选）
-      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
-      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
-      GITHUB_REDIRECT_URI: ${PUBLIC_URL:-http://localhost:3000}/api/auth/github/callback
-
       # 管理员账号配置（首次启动时自动创建）
       ADMIN_USERNAME: ${ADMIN_USERNAME:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}

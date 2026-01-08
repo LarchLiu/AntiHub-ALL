@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 class User(Base):
     """
     用户模型
-    支持传统用户名密码登录和 OAuth SSO 登录
+    支持传统用户名密码登录（保留历史 OAuth 字段以兼容旧数据）
     """
     __tablename__ = "users"
     
@@ -34,7 +34,7 @@ class User(Base):
         comment="用户名"
     )
     
-    # 密码哈希（SSO 用户可为空）
+    # 密码哈希（历史 SSO 用户可为空）
     password_hash: Mapped[Optional[str]] = mapped_column(
         String(255),
         nullable=True,
