@@ -42,8 +42,8 @@ services:
     environment:
       NODE_ENV: production
       # 可选：覆盖 web 容器内部访问 backend 的地址（容器内通常用 http://antihub-backend:8000）
-      INTERNAL_API_BASE_URL: ${INTERNAL_API_BASE_URL:-}
-      BACKEND_INTERNAL_URL: ${BACKEND_INTERNAL_URL:-}
+      INTERNAL_API_BASE_URL: ${INTERNAL_API_BASE_URL:-http://backend:8000}
+      BACKEND_INTERNAL_URL: ${BACKEND_INTERNAL_URL:-http://backend:8000}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
