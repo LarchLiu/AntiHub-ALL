@@ -9,8 +9,6 @@ services:
     volumes:
       - antihub_pg_data:/var/lib/postgresql/data
       - ./docker/postgres/initdb:/docker-entrypoint-initdb.d:ro
-    ports:
-      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
@@ -31,7 +29,7 @@ services:
     depends_on:
       - backend
     ports:
-      - "127.0.0.1:${WEB_PORT:-3000}:3000"
+      - "${WEB_PORT:-3000}:3000"
     restart: unless-stopped
 
   backend:
@@ -71,8 +69,6 @@ services:
         condition: service_started
       plugin:
         condition: service_started
-    ports:
-      - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
     restart: unless-stopped
 
   plugin:
