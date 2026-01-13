@@ -7,7 +7,7 @@
 
 这个仓库把 `AntiHub`（前端）、`AntiHub-Backend`（后端）、`AntiHub-plugin`（插件服务）统一成一套 `docker compose` 部署。
 
-目标很简单：三者之间的内部地址/端口都已经预置好，你只需要配置外部依赖（现成的 PostgreSQL）和你自己的密钥。
+目标很简单：三者之间的内部地址/端口都已经预置好，你只需要配置你自己的密钥；PostgreSQL 默认由本 `docker compose` 内置提供。
 
 另外：前端已内置 `/backend/* -> http://backend:8000/*` 转发，所以你不需要单独给 Nginx 配 `/backend/` 的反代规则（当然你想配也行）。
 
@@ -22,7 +22,7 @@
 
 ## 你需要准备
 
-- PostgreSQL：一套你现成的 PG（建议两个数据库：`antihub` 给后端用，`antigravity` 给插件用）
+- PostgreSQL：默认 compose 自带 `antihub-postgres`（首次启动会自动准备 `antihub` 和 `antigravity` 两个库）；如你有现成的 PG，可在 `.env` 里覆盖 `DATABASE_URL` / `PLUGIN_DB_*`
 - Redis：默认 compose 自带一个；如果你有现成 Redis，可在 `.env` 里覆盖相关变量
 
 ## 快速开始
