@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:17-alpine
     container_name: antihub-postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-antihub}
@@ -18,7 +18,7 @@ services:
     restart: unless-stopped
 
   postgres-init:
-    image: postgres:16-alpine
+    image: postgres:17-alpine
     depends_on:
       postgres:
         condition: service_healthy
@@ -27,7 +27,11 @@ services:
       PGUSER: ${POSTGRES_USER:-antihub}
       PGPASSWORD: ${POSTGRES_PASSWORD:-please-change-me}
     command: >
-      sh -c "psql -tc \"SELECT 1 FROM pg_database WHERE datname = 'antigravity'\" | grep -q 1 || psql -c \"CREATE DATABASE antigravity OWNER ${POSTGRES_USER:-antihub}\""
+      sh -c "
+        psql -tc \"SELECT 1 FROM pg_roles WHERE rolname = 'antigravity'\" | grep -q 1 || psql -c \"CREATE ROLE antigravity WITH LOGIN PASSWORD '${POSTGRES_PASSWORD:-please-change-me}'\";
+        psql -tc \"SELECT 1 FROM pg_database WHERE datname = 'antigravity'\" | grep -q 1 || psql -c \"CREATE DATABASE antigravity OWNER antigravity\";
+        psql -d antigravity -c \"GRANT ALL PRIVILEGES ON DATABASE antigravity TO antigravity\"
+      "
     networks:
       - antihub-network
     restart: "no"
@@ -104,7 +108,7 @@ services:
       DB_HOST: ${PLUGIN_DB_HOST:-postgres}
       DB_PORT: ${PLUGIN_DB_PORT:-5432}
       DB_NAME: ${PLUGIN_DB_NAME:-antigravity}
-      DB_USER: ${PLUGIN_DB_USER:-${POSTGRES_USER:-antihub}}
+      DB_USER: ${PLUGIN_DB_USER:-antigravity}
       DB_PASSWORD: ${PLUGIN_DB_PASSWORD:-${POSTGRES_PASSWORD:-please-change-me}}
 
       # Redis：默认使用 compose 自带 redis；如你有现成的 Redis，可在 .env 里覆盖
