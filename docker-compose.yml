@@ -14,6 +14,8 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+    networks:
+      - antihub-network
     restart: unless-stopped
 
   web:
@@ -30,6 +32,8 @@ services:
       - backend
     ports:
       - "${WEB_PORT:-3000}:3000"
+    networks:
+      - antihub-network
     restart: unless-stopped
 
   backend:
@@ -69,6 +73,8 @@ services:
         condition: service_started
       plugin:
         condition: service_started
+    networks:
+      - antihub-network
     restart: unless-stopped
 
   plugin:
@@ -101,6 +107,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+    networks:
+      - antihub-network
     restart: unless-stopped
 
   redis:
@@ -109,8 +117,14 @@ services:
     command: redis-server --appendonly yes
     volumes:
       - antihub_redis_data:/data
+    networks:
+      - antihub-network
     restart: unless-stopped
 
 volumes:
   antihub_pg_data:
   antihub_redis_data:
+
+networks:
+  antihub-network:
+    driver: bridge
