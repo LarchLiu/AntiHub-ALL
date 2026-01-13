@@ -7,6 +7,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"antihook/registry"
 )
 
 func showMessageBox(title, message string, flags uint) {
@@ -76,7 +78,18 @@ func findSubstring(s, substr string) bool {
 }
 
 func recoverOriginal() error {
-	return fmt.Errorf("recover is only supported on Windows")
+	protocols := []string{registry.ProtocolName, registry.AntiProtocolName}
+	for _, proto := range protocols {
+		handler, err := registry.NewProtocolHandler(proto, proto+" URL")
+		if err != nil {
+			return err
+		}
+		if err := handler.Unregister(); err != nil {
+			return err
+		}
+		fmt.Printf("✓ Unregistered %s:// protocol handler\n", proto)
+	}
+	return nil
 }
 
 func openBrowser(url string) error {
