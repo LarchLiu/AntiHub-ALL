@@ -44,13 +44,13 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
 
       # PostgreSQL：默认使用 compose 自带 postgres；如你有现成的 PG，可在 .env 里覆盖
-      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://${POSTGRES_USER:-antihub}:${POSTGRES_PASSWORD:-please-change-me}@antihub-postgres:5432/${POSTGRES_DB:-antihub}}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://${POSTGRES_USER:-antihub}:${POSTGRES_PASSWORD:-please-change-me}@postgres:5432/${POSTGRES_DB:-antihub}}
 
       # Redis：默认使用 compose 自带 redis；如你有现成的 Redis，可在 .env 里覆盖
-      REDIS_URL: ${REDIS_URL:-redis://antihub-redis:6379/0}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
 
       # 内部互联（已预置，不需要你再配“互相链接”的环境变量）
-      PLUGIN_API_BASE_URL: http://antihub-plugin:8045
+      PLUGIN_API_BASE_URL: http://plugin:8045
       PLUGIN_API_ADMIN_KEY: ${PLUGIN_ADMIN_API_KEY}
       PLUGIN_API_ENCRYPTION_KEY: ${PLUGIN_API_ENCRYPTION_KEY}
 
@@ -85,14 +85,14 @@ services:
       PORT: 8045
 
       # PostgreSQL：默认使用 compose 自带 postgres；如你有现成的 PG，可在 .env 里覆盖
-      DB_HOST: ${PLUGIN_DB_HOST:-antihub-postgres}
+      DB_HOST: ${PLUGIN_DB_HOST:-postgres}
       DB_PORT: ${PLUGIN_DB_PORT:-5432}
       DB_NAME: ${PLUGIN_DB_NAME:-antigravity}
       DB_USER: ${PLUGIN_DB_USER:-${POSTGRES_USER:-antihub}}
       DB_PASSWORD: ${PLUGIN_DB_PASSWORD:-${POSTGRES_PASSWORD:-please-change-me}}
 
       # Redis：默认使用 compose 自带 redis；如你有现成的 Redis，可在 .env 里覆盖
-      REDIS_HOST: ${PLUGIN_REDIS_HOST:-antihub-redis}
+      REDIS_HOST: ${PLUGIN_REDIS_HOST:-redis}
       REDIS_PORT: ${PLUGIN_REDIS_PORT:-6379}
       REDIS_PASSWORD: ${PLUGIN_REDIS_PASSWORD:-}
 
